@@ -1,0 +1,62 @@
+<resources xmlns:xliff = "http://schemas.android.com/tools" >
+    <string name="app_name">InventoryApp</string>
+
+    <string name="sports_type">Sports</string>
+    <string name="technology_type">Technology</string>
+    <string name="home_stuff_type">Home Stuff</string>
+    <string name="clothing_type">Clothing</string>
+
+    <string name="in_stock">In Stock</string>
+    <string name="not_in_stock">No Stock Available</string>
+    <string name="unknown_stock">Unknown Stock</string>
+
+    <string name="action_delete_all_entries">Delete all products</string>
+    <string name="action_insert_dummy_data">Insert Dummy Product</string>
+
+    <string name="action_delete">Delete Item</string>
+    <string name="action_save">Save Item</string>
+
+    <string name="product_name_detail">Name: <xliff:g id="name" example="Jersey">%s</xliff:g></string>
+    <string name="product_price_detail">Price: <xliff:g id="price" example="15.75">%.2f</xliff:g></string>
+    <string name="product_quantity_detail">Quantity: <xliff:g id="quantity" example="8">%d</xliff:g></string>
+
+    <string name="product_brand">Brand :</string>
+    <string name="product_brand_hint">Brand</string>
+    <string name="product_warranty">Warranty in days :</string>
+    <string name="product_warranty_hint">Warranty in days</string>
+    <string name="product_year_of_manufacture">Manufacture Year :</string>
+    <string name="product_year_of_manufacture_hint">Manufacture Year</string>
+    <string name="product_weight">Weight :</string>
+    <string name="product_weight_hint">Weight in kg</string>
+    <string name="product_price">Price :</string>
+    <string name="product_price_hint">Price</string>
+    <string name="product_quantity">Quantity :</string>
+    <string name="product_quantity_hint">Quantity</string>
+    <string name="product_name">Product Name :</string>
+    <string name="product_name_hint">Product Name</string>
+    <string name="product_type">Product Type</string>
+    <string name="product_stock_status">Stock Status</string>
+
+    <string name="change_image_button">Change Image</string>
+    <string name="delete_product_button">Delete Product</string>
+    <string name="order_from_supplier_button">Order from supplier</string>
+
+    <string name="modify_quantity_by_button">Modify quantity by</string>
+
+    <string name="delete">Delete this Product</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="delete_dialog_msg">Are you sure you want to delete this product?</string>
+
+    <string name="empty_view_text">To populate the inventory, use the add button.\n\nYou will require to enter data as brand,
+        name, price, weight and other characteristics of the product. After entering a product, you will only be able to
+        modify the quantity and also send an email to the supplier. You can delete the item using the button inside the detail screen
+        of each product.</string>
+    <string name="product_image">Product Image</string>
+    <string name="q_plus">+ Q</string>
+    <string name="q_minus">- Q</string>
+    <string name="increase_text_button">increase</string>
+    <string name="decrease_text_button">decrease</string>
+    <string name="new_sale_button_text">New Sale</string>
+    <string name="product_photo_content_description">Product Photo</string>
+</resources>

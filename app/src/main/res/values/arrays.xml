@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="product_types_options">
+        <item>@string/sports_type</item>
+        <item>@string/technology_type</item>
+        <item>@string/home_stuff_type</item>
+        <item>@string/clothing_type</item>
+    </string-array>
+
+    <string-array name="in_stock_options">
+        <item>@string/not_in_stock</item>
+        <item>@string/in_stock</item>
+        <item>@string/unknown_stock</item>
+    </string-array>
+</resources>
