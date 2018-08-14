@@ -5,7 +5,9 @@
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
+/app/google-services.json
 .DS_Store
 /build
 /captures
+/app/src/main/java/com/example/android/inventoryapp/FileUtility.java
 .externalNativeBuild

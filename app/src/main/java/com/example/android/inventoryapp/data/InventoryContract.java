@@ -33,32 +33,31 @@ public final class InventoryContract {
         public final static String _ID = BaseColumns._ID;
         public final static String COLUMN_PRODUCT_BRAND = "brand";
         public final static String COLUMN_PRODUCT_WARRANTY = "warranty";
-        public final static String COLUMN_PRODUCT_DATE_MANUFACTURE = "date_of_manufacture";
+        public final static String COLUMN_PRODUCT_YEAR_MANUFACTURE = "date_of_manufacture";
         public final static String COLUMN_PRODUCT_WEIGHT = "weight";
         public final static String COLUMN_PRODUCT_PRICE = "price";
         public final static String COLUMN_PRODUCT_QUANTITY = "quantity";
         public final static String COLUMN_PRODUCT_STOCK = "in_stock";
         public final static String COLUMN_PRODUCT_NAME = "name";
         public final static String COLUMN_PRODUCT_TYPE = "type";
-        public final static String COLUMN_PRODUCT_IMAGE_ID = "image_id";
-
+        public final static String COLUMN_PRODUCT_IMAGE_URL = "image_id";
 
 
         public final static int NO_STOCK_AVAILABLE = 0;
         public final static int IN_STOCK = 1;
-        public final static int UNKNOWN_STOCK = 2;
 
         public final static int SPORTS_TYPE = 0;
         public final static int TECHNOLOGY_TYPE = 1;
-        public final static int HOME_STUFF_TYPE = 2;
+        public final static int FURNITURE_TYPE = 2;
         public final static int CLOTHING_TYPE = 3;
+        public final static int OTHER_TYPE = 4;
 
         public static boolean validateType(int type){
-            return (type == SPORTS_TYPE || type == TECHNOLOGY_TYPE  || type == HOME_STUFF_TYPE || type == CLOTHING_TYPE);
+            return (type == SPORTS_TYPE || type == TECHNOLOGY_TYPE  || type == FURNITURE_TYPE || type == CLOTHING_TYPE);
         }
 
         public static boolean validateStock(int stock){
-            return (stock == IN_STOCK ||  stock == NO_STOCK_AVAILABLE || stock == UNKNOWN_STOCK );
+            return (stock == IN_STOCK ||  stock == NO_STOCK_AVAILABLE);
         }
     }
 }

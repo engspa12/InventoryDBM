@@ -11,6 +11,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.android.inventoryapp.data.InventoryContract.InventoryEntry;
+import com.squareup.picasso.Picasso;
 
 /**
  * Created by DBM on 6/25/2017.
@@ -33,9 +34,6 @@ public class InventoryCursorAdapter extends CursorAdapter {
                //The method performItemClick will call the OnItemClickListener that is defined in the Main Activity
                //And it will send the view(of the SALE button), the position, and we set id=0 because we don't use the id in our code
               ((ListView) viewGroup).performItemClick(view, ((ListView) viewGroup).getPositionForView(view), 0);
-               //((ListView) viewGroup).performItemClick(view, cursor.getPosition(), 0);
-              // System.out.println(cursor.getPosition());
-            //System.out.println("Here we are in the newView and we print: " + ((ListView) viewGroup).getPositionForView(view));
        }
       });
         return newView;
@@ -47,18 +45,19 @@ public class InventoryCursorAdapter extends CursorAdapter {
         TextView productName = (TextView) view.findViewById(R.id.name_tv);
         TextView productQuantity = (TextView) view.findViewById(R.id.quantity_tv);
         TextView productPrice = (TextView) view.findViewById(R.id.price_tv);
-        ImageView productImage = (ImageView) view.findViewById(R.id.image_ref);
+        ImageView productImageView = (ImageView) view.findViewById(R.id.image_ref);
 
         String name = cursor.getString(cursor.getColumnIndexOrThrow(InventoryEntry.COLUMN_PRODUCT_NAME));
         int quantity = cursor.getInt(cursor.getColumnIndexOrThrow(InventoryEntry.COLUMN_PRODUCT_QUANTITY));
         double price = cursor.getDouble(cursor.getColumnIndexOrThrow(InventoryEntry.COLUMN_PRODUCT_PRICE));
 
-        int image_resource = cursor.getInt(cursor.getColumnIndexOrThrow(InventoryEntry.COLUMN_PRODUCT_IMAGE_ID));
+        String image_resource = cursor.getString(cursor.getColumnIndexOrThrow(InventoryEntry.COLUMN_PRODUCT_IMAGE_URL));
 
         productName.setText(context.getString(R.string.product_name_detail,name));
         productQuantity.setText(context.getString(R.string.product_quantity_detail,quantity));
         productPrice.setText(context.getString(R.string.product_price_detail,price));
-        productImage.setImageResource(image_resource);
+
+        Picasso.get().load(image_resource).resize(250,250).into(productImageView);
 
       //  view.findViewById(R.id.sale_button).setOnClickListener(new View.OnClickListener() {
       //  @Override

@@ -118,7 +118,7 @@ public class InventoryProvider extends ContentProvider {
         }
 
         // If the weight is provided, check that it's greater than or equal to 0 kg
-        Integer weight = values.getAsInteger(InventoryEntry.COLUMN_PRODUCT_WEIGHT);
+        Double weight = values.getAsDouble(InventoryEntry.COLUMN_PRODUCT_WEIGHT);
 
         if (weight != null && weight < 0) {
             throw new IllegalArgumentException("Product requires valid weight");
@@ -199,7 +199,7 @@ public class InventoryProvider extends ContentProvider {
 
         if(values.containsKey(InventoryEntry.COLUMN_PRODUCT_WEIGHT)) {
             // If the weight is provided, check that it's greater than or equal to 0 kg
-            Integer weight = values.getAsInteger(InventoryEntry.COLUMN_PRODUCT_WEIGHT);
+            Double weight = values.getAsDouble(InventoryEntry.COLUMN_PRODUCT_WEIGHT);
 
             if (weight != null && weight < 0) {
                 throw new IllegalArgumentException("Product requires valid weight");

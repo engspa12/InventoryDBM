@@ -3,12 +3,12 @@
 
     <string name="sports_type">Sports</string>
     <string name="technology_type">Technology</string>
-    <string name="home_stuff_type">Home Stuff</string>
+    <string name="furniture_type">Furniture</string>
     <string name="clothing_type">Clothing</string>
+    <string name="other_type">Other</string>
 
     <string name="in_stock">In Stock</string>
     <string name="not_in_stock">No Stock Available</string>
-    <string name="unknown_stock">Unknown Stock</string>
 
     <string name="action_delete_all_entries">Delete all products</string>
     <string name="action_insert_dummy_data">Insert Dummy Product</string>
@@ -27,7 +27,7 @@
     <string name="product_year_of_manufacture">Manufacture Year :</string>
     <string name="product_year_of_manufacture_hint">Manufacture Year</string>
     <string name="product_weight">Weight :</string>
-    <string name="product_weight_hint">Weight in kg</string>
+    <string name="product_weight_hint">Weight</string>
     <string name="product_price">Price :</string>
     <string name="product_price_hint">Price</string>
     <string name="product_quantity">Quantity :</string>
@@ -37,7 +37,7 @@
     <string name="product_type">Product Type</string>
     <string name="product_stock_status">Stock Status</string>
 
-    <string name="change_image_button">Change Image</string>
+    <string name="select_image_button">Select Image</string>
     <string name="delete_product_button">Delete Product</string>
     <string name="order_from_supplier_button">Order from supplier</string>
 
@@ -59,4 +59,6 @@
     <string name="decrease_text_button">decrease</string>
     <string name="new_sale_button_text">New Sale</string>
     <string name="product_photo_content_description">Product Photo</string>
+    <string name="kilogram_text">kg</string>
+    <string name="dollar_sign_text">$</string>
 </resources>
