@@ -1,5 +1,7 @@
 package com.example.android.inventoryapp;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProvider;
 import android.content.ContentValues;
 import android.content.DialogInterface;
@@ -13,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.media.ExifInterface;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -35,7 +38,6 @@ import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.example.android.inventoryapp.data.InventoryContract.InventoryEntry;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -52,11 +54,12 @@ import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class EditorActivity extends AppCompatActivity {
 
     @BindView(R.id.product_type_spinner) Spinner productTypesSpinner;
     @BindView(R.id.in_stock_spinner) Spinner inStockSpinner;
@@ -88,15 +91,22 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     private static final int RC_PHOTO_PICKER = 2;
 
     private static final int NEW_IMAGE_CODE = 123;
+    private static final int NO_IMAGE_SELECTED = -1;
 
-    private Uri wantedUri;
+    public final static int NO_STOCK_AVAILABLE = 0;
+    public final static int IN_STOCK = 1;
+
+    public final static int SPORTS_TYPE = 0;
+    public final static int TECHNOLOGY_TYPE = 1;
+    public final static int FURNITURE_TYPE = 2;
+    public final static int CLOTHING_TYPE = 3;
+    public final static int OTHER_TYPE = 4;
+
+    private int productId;
+
     private int typeProduct;
     private int inStock;
     private int image_id_resource;
-
-
-    private FirebaseDatabase firebaseDatabase;
-    private DatabaseReference productsDatabaseReference;
 
     private FirebaseStorage firebaseStorage;
     private StorageReference productsStorageReference;
@@ -119,6 +129,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private Bitmap selectedImageBitmap;
 
+    public static final String EXTRA_PRODUCT_ID = "extra_product_id";
+    private static final int DEFAULT_PRODUCT_ID = -1;
+
+    private ProductItem updateProductItem;
+
+    private AppDatabase mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,10 +143,17 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         ButterKnife.bind(this);
 
-        wantedUri = getIntent().getData();
+        Intent intent = getIntent();
 
-        firebaseDatabase = FirebaseDatabase.getInstance();
-        productsDatabaseReference = firebaseDatabase.getReference().child("products");
+        mDb = AppDatabase.getInstance(getApplicationContext());
+
+        if(intent.hasExtra(EXTRA_PRODUCT_ID)) {
+            productId = intent.getIntExtra(EXTRA_PRODUCT_ID,DEFAULT_PRODUCT_ID);
+
+        } else{
+            productId = DEFAULT_PRODUCT_ID;
+        }
+
 
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
@@ -148,12 +171,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             }
         };
 
-        if (wantedUri == null) {
+        if (productId == DEFAULT_PRODUCT_ID) {
             // This is a new product, so change the app bar to say "Add a Product"
             setTitle("Add Product");
             image_id_resource = R.drawable.select_image;
             productImageView.setImageResource(image_id_resource);
-            image_id_resource = -1;
+            image_id_resource = NO_IMAGE_SELECTED;
             // Invalidate the options menu, so the "Delete" menu option can be hidden.
             // (It doesn't make sense to delete a product that hasn't been created yet.)
             multi_button.setText(getString(R.string.select_image_button));
@@ -181,7 +204,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
             containerOne.setVisibility(View.GONE);
             containerTwo.setVisibility(View.GONE);
-            invalidateOptionsMenu();
+
 
             progressBarSaveItem.setVisibility(View.GONE);
 
@@ -189,14 +212,23 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         } else {
             // Otherwise this is an existing product, so change app bar to say "Edit Product"
             setTitle("Product Details");
+            final LiveData<ProductItem> productItemLiveData = mDb.productItemDao().loadProductById(productId);
+            productItemLiveData.observe(this, new Observer<ProductItem>() {
+                @Override
+                public void onChanged(@Nullable ProductItem productItem) {
+                    productItemLiveData.removeObserver(this);
+                    updateProductItem = productItem;
+                    Log.d(TAG,"Receiving database update from LiveData");
+                    populateUI(productItem);
+                }
+            });
+
             scrollView.setVisibility(View.GONE);
             multi_button.setText(getString(R.string.delete_product_button));
-            avoidModifications();
-            invalidateOptionsMenu();
 
-            // Initialize a loader to read the product data from the database
-            // and display the current values in the editor
-            getSupportLoaderManager().initLoader(0, null, this);
+            avoidModifications();
+
+            image_id_resource = NEW_IMAGE_CODE;
 
             multi_button.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -264,7 +296,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                     String amountString = modifyQuantityET.getText().toString().trim();
                     int amount;
                     if (amountString.equals("")) {
-                        amount = 0;
                         Toast.makeText(getBaseContext(), "You need to enter a quantity in the input field", Toast.LENGTH_SHORT).show();
                     } else {
                         amount = Integer.parseInt(amountString);
@@ -288,7 +319,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                     String amountString = modifyQuantityET.getText().toString().trim();
                     int amount;
                     if (amountString.equals("")) {
-                        amount = 0;
                         Toast.makeText(getBaseContext(), "You need to enter a quantity in the input field", Toast.LENGTH_SHORT).show();
                     } else {
                         amount = Integer.parseInt(amountString);
@@ -309,6 +339,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         }
 
+        invalidateOptionsMenu();
         setupSpinners();
 
 
@@ -398,7 +429,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             catch (Exception e) {}
             //end of orientation
 
-            //productImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            productImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             productImageView.setImageBitmap(yourSelectedImage);
         } catch (Exception e) {
             Toast.makeText(getApplicationContext(), "Could not open file.", Toast.LENGTH_LONG).show();
@@ -440,7 +471,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                     Uri imageDownloadUri = task.getResult();
                     downloadImageUrl = imageDownloadUri.toString();
                     progressBarSaveItem.setVisibility(View.GONE);
-                    saveProduct();
+                    saveProductDetails();
                     scrollView.setVisibility(View.VISIBLE);
                     finish();
                 } else {
@@ -489,12 +520,11 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     private void setupSpinners() {
 
-        // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> typesAdapter = ArrayAdapter.createFromResource(this,
                 R.array.product_types_options, R.layout.spinner_item);
-        // Specify the layout to use when the list of choices appears
+
         typesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner
+
         productTypesSpinner.setAdapter(typesAdapter);
 
         productTypesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -528,12 +558,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             }
         });
 
-        // Create an ArrayAdapter using the string array and a default spinner layout
+
         ArrayAdapter<CharSequence> inStockAdapter = ArrayAdapter.createFromResource(this,
                 R.array.in_stock_options, R.layout.spinner_item);
-        // Specify the layout to use when the list of choices appears
+
         inStockAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner
+
         inStockSpinner.setAdapter(inStockAdapter);
 
         inStockSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -571,11 +601,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        // If this is a new item, hide the "Delete" menu item.
-        //if (wantedUri == null) {
         MenuItem menuItem = menu.findItem(R.id.action_delete);
         menuItem.setVisible(false);
-        // }
         return true;
     }
 
@@ -585,17 +612,25 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         switch (item.getItemId()) {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_save:
-                if(checkInputData()) {
-                    progressBarSaveItem.setVisibility(View.VISIBLE);
-                    scrollView.setVisibility(View.GONE);
-                    saveInStorage();
+                if (checkInputData()){
+                    if(productId == DEFAULT_PRODUCT_ID) {
+                        progressBarSaveItem.setVisibility(View.VISIBLE);
+                        scrollView.setVisibility(View.GONE);
+                        saveInStorage();
+                    } else{
+                        final ProductItem productItem = new ProductItem(brand,warrantyInt,yearManufacture,weightDouble,priceDouble,quantityInt,inStock,name,typeProduct,downloadImageUrl);
+                        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                productItem.setId(productId);
+                                mDb.productItemDao().updateProduct(productItem);
+                                finish();
+                            }
+
+                        });
+                    }
                 }
                 return true;
-            // Respond to a click on the "Delete all entries" menu option
-            //case R.id.action_delete:
-               // showDeleteConfirmationDialog();
-                //deleteProduct();
-             //   return true;
         }
         return super.onOptionsItemSelected(item);
 
@@ -660,128 +695,96 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             return false;
         }
 
+        if(productId != DEFAULT_PRODUCT_ID){
+            downloadImageUrl = updateProductItem.getUrlImage();
+        }
+
         return true;
     }
 
-    public void saveProduct() {
+   public void saveProductDetails() {
 
-        ContentValues values = new ContentValues();
+       final ProductItem productItem = new ProductItem(brand,warrantyInt,yearManufacture,weightDouble,priceDouble,quantityInt,inStock,name,typeProduct,downloadImageUrl);
 
-        values.put(InventoryEntry.COLUMN_PRODUCT_BRAND, brand);
-        values.put(InventoryEntry.COLUMN_PRODUCT_WARRANTY, warrantyInt);
-        values.put(InventoryEntry.COLUMN_PRODUCT_YEAR_MANUFACTURE, yearManufacture);
-        values.put(InventoryEntry.COLUMN_PRODUCT_WEIGHT, weightDouble);
-        values.put(InventoryEntry.COLUMN_PRODUCT_PRICE, priceDouble);
-        values.put(InventoryEntry.COLUMN_PRODUCT_QUANTITY, quantityInt);
-        values.put(InventoryEntry.COLUMN_PRODUCT_STOCK, inStock);
-        values.put(InventoryEntry.COLUMN_PRODUCT_NAME, name);
-        values.put(InventoryEntry.COLUMN_PRODUCT_TYPE, typeProduct);
-        values.put(InventoryEntry.COLUMN_PRODUCT_IMAGE_URL, downloadImageUrl);
-
-        ProductItem productItem = new ProductItem(brand,warrantyInt,yearManufacture,weightDouble,priceDouble,quantityInt,inStock,name,typeProduct,downloadImageUrl);
-        /*productsDatabaseReference.push().setValue(productItem);*/
-        productsDatabaseReference.child(name + yearManufacture + brand).setValue(productItem);
-
-        if (wantedUri == null) {
-            getContentResolver().insert(InventoryEntry.CONTENT_URI, values);
-        } else {
-            getContentResolver().update(wantedUri, values, null, null);
-        }
+       AppExecutors.getInstance().diskIO().execute(new Runnable() {
+           @Override
+           public void run() {
+               mDb.productItemDao().insertProduct(productItem);
+           }
+       });
 
     }
 
     public void deleteProduct() {
 
-        if (wantedUri != null) {
+        /*if (wantedUri != null) {
             getContentResolver().delete(wantedUri, null, null);
-        }
+        }*/
 
-        finish();
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                mDb.productItemDao().deleteProduct(updateProductItem);
+                finish();
+            }
+        });
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getBaseContext(), wantedUri, null, null, null, null);
-    }
 
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+    public void populateUI(ProductItem item) {
 
-        if (data == null || data.getCount() < 1) {
+        if(item == null){
             return;
         }
 
+        String currentBrand = item.getBrand();
+        int currentWarranty = item.getWarranty();
+        String currentYearManufacture = item.getManufactureYear();
+        double currentWeight = item.getWeight();
+        double currentPrice = item.getPrice();
+        int currentQuantity = item.getQuantity();
+        String currentName = item.getName();
 
-        if (data.moveToFirst()) {
+        int currentType = item.getType();
+        int currentInStock = item.getInStock();
 
-            String currentBrand = data.getString(data.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_BRAND));
-            int currentWarranty = data.getInt(data.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_WARRANTY));
-            String currentYearManufacture = data.getString(data.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_YEAR_MANUFACTURE));
-            double currentWeight = data.getInt(data.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_WEIGHT));
-            double currentPrice = data.getDouble(data.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_PRICE));
-            int currentQuantity = data.getInt(data.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_QUANTITY));
-            String currentName = data.getString(data.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_NAME));
+        String currentImageResource = item.getUrlImage();
 
-            int currentType = data.getInt(data.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_TYPE));
-            int currentInStock = data.getInt(data.getColumnIndex(InventoryEntry.COLUMN_PRODUCT_STOCK));
+        brandET.setText(currentBrand);
+        warrantyET.setText(String.valueOf(currentWarranty));
+        dateManufactureET.setText(currentYearManufacture);
+        weightET.setText(String.valueOf(currentWeight));
+        priceET.setText(String.valueOf(currentPrice));
+        quantityET.setText(String.valueOf(currentQuantity));
+        nameET.setText(currentName);
 
-            String currentImageResource = data.getString(data.getColumnIndexOrThrow(InventoryEntry.COLUMN_PRODUCT_IMAGE_URL));
-            //image_id_resource = currentImageResource;
+        Picasso.get().load(currentImageResource).resize(250,250).into(productImageView);
 
-            brandET.setText(currentBrand);
-            warrantyET.setText(String.valueOf(currentWarranty));
-            dateManufactureET.setText(currentYearManufacture);
-            weightET.setText(String.valueOf(currentWeight));
-            priceET.setText(String.valueOf(currentPrice));
-            quantityET.setText(String.valueOf(currentQuantity));
-            nameET.setText(currentName);
-
-            //productImageView.setImageResource(currentImageResource);
-            Picasso.get().load(currentImageResource).resize(250,250).into(productImageView);
-
-            if (currentType == InventoryEntry.SPORTS_TYPE) {
-                productTypesSpinner.setSelection(0);
-            } else if (currentType == InventoryEntry.TECHNOLOGY_TYPE) {
-                productTypesSpinner.setSelection(1);
-            } else if (currentType == InventoryEntry.FURNITURE_TYPE) {
-                productTypesSpinner.setSelection(2);
-            } else if (currentType == InventoryEntry.CLOTHING_TYPE) {
-                productTypesSpinner.setSelection(3);
-            } else if(currentType == InventoryEntry.OTHER_TYPE){
-                productTypesSpinner.setSelection(4);
-            }
-
-
-            if (currentInStock == InventoryEntry.NO_STOCK_AVAILABLE) {
-                inStockSpinner.setSelection(0);
-            } else if (currentInStock == InventoryEntry.IN_STOCK) {
-                inStockSpinner.setSelection(1);
-            }
-
-            productTypesSpinner.setEnabled(false);
-            inStockSpinner.setEnabled(false);
-
-            progressBarSaveItem.setVisibility(View.GONE);
-            scrollView.setVisibility(View.VISIBLE);
-
-
+        if (currentType == SPORTS_TYPE) {
+            productTypesSpinner.setSelection(0);
+        } else if (currentType == TECHNOLOGY_TYPE) {
+            productTypesSpinner.setSelection(1);
+        } else if (currentType == FURNITURE_TYPE) {
+            productTypesSpinner.setSelection(2);
+        } else if (currentType == CLOTHING_TYPE) {
+            productTypesSpinner.setSelection(3);
+        } else if(currentType == OTHER_TYPE){
+            productTypesSpinner.setSelection(4);
         }
 
 
+        if (currentInStock == NO_STOCK_AVAILABLE) {
+            inStockSpinner.setSelection(0);
+        } else if (currentInStock == IN_STOCK) {
+            inStockSpinner.setSelection(1);
+        }
+
+        productTypesSpinner.setEnabled(false);
+        inStockSpinner.setEnabled(false);
+
+        progressBarSaveItem.setVisibility(View.GONE);
+        scrollView.setVisibility(View.VISIBLE);
     }
 
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        brandET.setText("");
-        warrantyET.setText("");
-        dateManufactureET.setText("");
-        weightET.setText("");
-        priceET.setText("");
-        quantityET.setText("");
-        nameET.setText("");
-        productTypesSpinner.setSelection(0);
-        inStockSpinner.setSelection(0);
-
-    }
 }
 

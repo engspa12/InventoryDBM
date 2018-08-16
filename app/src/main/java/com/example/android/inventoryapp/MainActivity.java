@@ -1,5 +1,7 @@
 package com.example.android.inventoryapp;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -7,77 +9,60 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.inventoryapp.data.InventoryContract.InventoryEntry;
-import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MainActivity extends AppCompatActivity implements InventoryAdapter.ItemClickListener {
 
 
     @BindView(R.id.fab_product) FloatingActionButton fab;
-    @BindView(R.id.list) ListView listView;
+    @BindView(R.id.recycler_view) RecyclerView recyclerView;
     @BindView(R.id.empty_view) TextView emptyView;
+
+    private AppDatabase mDb;
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    //private static final int RC_PHOTO_PICKER = 2;
+    private static final String BRAND = "Product Brand";
+    private static final int WARRANTY = 360;
+    private static final String MANUFACTURE_YEAR = "2017";
+    private static final double WEIGHT = 1.56;
+    private static final double PRICE = 14.99;
+    private static final int QUANTITY = 5;
+    private static final int IN_STOCK = 1;
+    private static final String NAME = "Product Name";
+    private static final int TYPE_PRODUCT = 3;
 
-    //private Uri selectedImageUri;
 
-    private static final String downloadImageUrl = "https://cdn4.iconfinder.com/data/icons/seo-accessibility-usability-2-2/256/Usability_Evaluation-512.png";
+    private static final String downloadImageUrl = "http://www.bsmc.net.au/wp-content/uploads/No-image-available.jpg";
 
-    private InventoryCursorAdapter adapter;
-
-    private String[] projection = {InventoryEntry.COLUMN_PRODUCT_BRAND,InventoryEntry.COLUMN_PRODUCT_WARRANTY, InventoryEntry.COLUMN_PRODUCT_YEAR_MANUFACTURE,
-    InventoryEntry.COLUMN_PRODUCT_WEIGHT, InventoryEntry.COLUMN_PRODUCT_PRICE, InventoryEntry.COLUMN_PRODUCT_QUANTITY, InventoryEntry.COLUMN_PRODUCT_STOCK,
-            InventoryEntry.COLUMN_PRODUCT_STOCK,InventoryEntry.COLUMN_PRODUCT_NAME,InventoryEntry.COLUMN_PRODUCT_TYPE,InventoryEntry.COLUMN_PRODUCT_IMAGE_URL};
-
-    private Uri modifyUri;
-
-    //private FirebaseDatabase firebaseDatabase;
-    //private DatabaseReference productsDatabaseReference;
+    private InventoryAdapter adapter;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-
-    //private FirebaseStorage firebaseStorage;
-    //private StorageReference productsStorageReference;
-
-    //private StorageReference photoRef;
-
-    private ChildEventListener mChildEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,11 +70,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.overall_layout);
         ButterKnife.bind(this);
 
-        //firebaseDatabase = FirebaseDatabase.getInstance();
-        //productsDatabaseReference = firebaseDatabase.getReference().child("products");
-
-        //firebaseStorage = FirebaseStorage.getInstance();
-        //productsStorageReference = firebaseStorage.getReference().child("inventory_photos");
+        mDb = AppDatabase.getInstance(getApplicationContext());
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -121,18 +102,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                    }
                 });
 
-        /*fab.setOnClickListener(new View.OnClickListener() {
-
-                @Override
-                public void onClick(View view) {
-                    // TODO: Fire an intent to show an image picker
-                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                    intent.setType("image/jpeg");
-                    intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
-                    startActivityForResult(Intent.createChooser(intent, "Complete action using"), RC_PHOTO_PICKER);
-                }
-        });*/
-
 
        fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -142,26 +111,42 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 }
         });
 
-       /*fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ProductItem productItem = new ProductItem("New Brand",256,"2007",1.56,76.12,8,1,"Product Name",3,downloadImageUrl);
-                Map<String, Object> postValues = productItem.toMap();
 
-                Map<String, Object> childUpdates = new HashMap<>();
-                childUpdates.put("/Dorian2003Mgx" , postValues);
+       LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+       recyclerView.setLayoutManager(layoutManager);
+       emptyView.setVisibility(View.GONE);
 
-                productsDatabaseReference.updateChildren(childUpdates);
-                }
-        });*/
+       recyclerView.setHasFixedSize(true);
 
-        listView.setEmptyView(emptyView);
+       adapter = new InventoryAdapter(this,this);
 
-        adapter = new InventoryCursorAdapter(this,null);
+       recyclerView.setAdapter(adapter);
 
-        listView.setAdapter(adapter);
+        DividerItemDecoration itemDecorator = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
+        itemDecorator.setDrawable(ContextCompat.getDrawable(this, R.drawable.divider));
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+       recyclerView.addItemDecoration(itemDecorator);
+
+       new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+           @Override
+           public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+               return false;
+           }
+
+           @Override
+           public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        int position = viewHolder.getAdapterPosition();
+                        List<ProductItem> productsList = adapter.getProducts();
+                        mDb.productItemDao().deleteProduct(productsList.get(position));
+                    }
+                });
+           }
+       }).attachToRecyclerView(recyclerView);
+
+       /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             //We don't use the parameter id, instead we use view.getId() to know if the SALE button was clicked or not
@@ -182,9 +167,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     startActivity(intent);
                 }
             }
-        });
+        });*/
 
-        getSupportLoaderManager().initLoader(1, null, this);
+        //getSupportLoaderManager().initLoader(1, null, this);
+        retrieveProducts();
 
     }
 
@@ -192,6 +178,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     protected void onStart(){
         super.onStart();
        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+
+    private void retrieveProducts() {
+        final LiveData<List<ProductItem>> list = mDb.productItemDao().loadAllProducts();
+        list.observe(this, new Observer<List<ProductItem>>() {
+            @Override
+            public void onChanged(@Nullable List<ProductItem> productItems) {
+                Log.d(TAG,"Receiving database update from LiveData");
+                adapter.setProducts(productItems);
+            }
+        });
     }
 
     @Override
@@ -202,9 +200,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
-    public void reduceQuantityItem()
-    {
-        System.out.println("the sale button was pressed");
+    public void reduceQuantityItem() {
+
+/*        System.out.println("the sale button was pressed");
         Cursor cursor = getContentResolver().query(modifyUri,projection,null,null,null);
         System.out.println("the cursor position is: " + cursor.getPosition());
         System.out.println("the cursor count is: " + cursor.getCount());
@@ -225,36 +223,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
         ContentValues values = new ContentValues();
         values.put(InventoryEntry.COLUMN_PRODUCT_QUANTITY,quantity);
-        getContentResolver().update(modifyUri,values,null,null);
+        getContentResolver().update(modifyUri,values,null,null);*/
 
     }
 
-   /* @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
-            selectedImageUri = data.getData();
-            //saveInStorage();
-        }
 
-    }*/
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-
-        return new CursorLoader(getBaseContext(), InventoryEntry.CONTENT_URI, null, null, null, null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-            adapter.swapCursor(data);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        adapter.swapCursor(null);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -280,71 +253,43 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     public void insertDummyProduct(){
 
+        final ProductItem productItem = new ProductItem(BRAND,WARRANTY,MANUFACTURE_YEAR,WEIGHT,
+                PRICE,QUANTITY,IN_STOCK,NAME,TYPE_PRODUCT,downloadImageUrl);
 
-        ContentValues values = new ContentValues();
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                mDb.productItemDao().insertProduct(productItem);
+            }
+        });
 
-        values.put(InventoryEntry.COLUMN_PRODUCT_BRAND,"Product Brand");
-        values.put(InventoryEntry.COLUMN_PRODUCT_WARRANTY,360);
-        values.put(InventoryEntry.COLUMN_PRODUCT_YEAR_MANUFACTURE,"2017");
-        values.put(InventoryEntry.COLUMN_PRODUCT_WEIGHT,1.56);
-        values.put(InventoryEntry.COLUMN_PRODUCT_PRICE,14.99);
-        values.put(InventoryEntry.COLUMN_PRODUCT_QUANTITY,5);
-        values.put(InventoryEntry.COLUMN_PRODUCT_STOCK,1);
-        values.put(InventoryEntry.COLUMN_PRODUCT_NAME,"Product Name");
-        values.put(InventoryEntry.COLUMN_PRODUCT_TYPE,3);
-        values.put(InventoryEntry.COLUMN_PRODUCT_IMAGE_URL,downloadImageUrl);
+        Toast.makeText(this,"Product added successfully",Toast.LENGTH_SHORT).show();
 
-        //ProductItem productItem = new ProductItem("Product Brand",360,"2017",1.56,14.99,5,1,"Product Name",3,downloadImageUrl);
-        //productsDatabaseReference.push().setValue(productItem);
+    }
 
-        getContentResolver().insert(InventoryEntry.CONTENT_URI,values);
-
+    @Override
+    public void onItemClickListener(int itemId, int clickedItemIndex, boolean isSaleButton) {
+        if(isSaleButton){
+            //reduceQuantityItem();
+            Toast.makeText(this, "The sale button was pressed, " + "itemId: " + itemId + " - " + "position: " + clickedItemIndex,Toast.LENGTH_SHORT).show();
+        }
+        else{
+            Intent intent = new Intent(MainActivity.this,EditorActivity.class);
+            intent.putExtra(EditorActivity.EXTRA_PRODUCT_ID,itemId);
+            startActivity(intent);
+            //Toast.makeText(this, "Another view was pressed, " + "itemId: " + itemId + " - " + "position: " + clickedItemIndex,Toast.LENGTH_SHORT).show();
+        }
     }
 
 
 
     public void deleteEntries(){
-        getContentResolver().delete(InventoryEntry.CONTENT_URI, null, null);
-
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                mDb.productItemDao().deleteAllProducts();
+            }
+        });
     }
 
-/*    private void saveInStorage(){
-        photoRef = productsStorageReference.child(selectedImageUri.getLastPathSegment());
-
-        UploadTask uploadTask = photoRef.putFile(selectedImageUri);
-        uploadTask.addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Toast.makeText(MainActivity.this,"The file was uploaded successfully",Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(MainActivity.this,"Error - The file could not be uploaded",Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-            @Override
-            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                if (!task.isSuccessful()) {
-                    throw task.getException();
-                }
-                // Continue with the task to get the download URL
-                return photoRef.getDownloadUrl();
-            }
-        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-            @Override
-            public void onComplete(@NonNull Task<Uri> task) {
-                if (task.isSuccessful()) {
-                    Uri imageDownloadUri = task.getResult();
-                    downloadImageUrl = imageDownloadUri.toString();
-                } else {
-                    // Handle failures
-                    // ...
-                    Toast.makeText(MainActivity.this,"The size of the image must be below 3 MB",Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-    }*/
 }

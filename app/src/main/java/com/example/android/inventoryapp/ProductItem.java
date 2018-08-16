@@ -60,22 +60,6 @@ public class ProductItem {
         this.urlImage = urlImage;
     }
 
-/*    @Exclude
-    public Map<String, Object> toMap() {
-        HashMap<String, Object> result = new HashMap<>();
-        result.put("brand", brand);
-        result.put("warranty", warranty);
-        result.put("yearManufacture", yearManufacture);
-        result.put("weight", weight);
-        result.put("price", price);
-        result.put("quantity", quantity);
-        result.put("inStock", inStock);
-        result.put("name", name);
-        result.put("type", type);
-        result.put("urlImage", urlImage);
-
-        return result;
-    }*/
 
     public int getId(){return id;}
 
@@ -85,41 +69,61 @@ public class ProductItem {
         return brand;
     }
 
+    public void setBrand(String brand){this.brand = brand;}
+
     public int getWarranty(){
         return warranty;
     }
+
+    public void setWarranty(int warranty){this.warranty = warranty;}
 
     public String getManufactureYear(){
         return manufactureYear;
     }
 
+    public void setManufactureYear(String manufactureYear){this.manufactureYear = manufactureYear;}
+
     public double getWeight(){
         return weight;
     }
+
+    public void setWeight(double weight){this.weight = weight;}
 
     public double getPrice(){
         return price;
     }
 
+    public void setPrice(double price){this.price = price;}
+
     public int getQuantity(){
         return quantity;
     }
+
+    public void setQuantity(int quantity){this.quantity = quantity;}
 
     public int getInStock(){
         return inStock;
     }
 
-   public String getProductName(){
+    public void setInStock(int inStock){this.inStock = inStock;}
+
+   public String getName(){
         return name;
    }
 
-   public int getProductType(){
+   public void setName(String name){this.name = name;}
+
+   public int getType(){
         return type;
    }
+
+    public void setType(int type){this.type = type;}
 
    public String getUrlImage(){
         return urlImage;
    }
+
+    public void setUrlImage(String urlImage){this.urlImage = urlImage;}
 
 
 }
