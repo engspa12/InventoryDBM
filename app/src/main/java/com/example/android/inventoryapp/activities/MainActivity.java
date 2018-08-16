@@ -1,12 +1,9 @@
-package com.example.android.inventoryapp;
+package com.example.android.inventoryapp.activities;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
-import android.content.ContentUris;
-import android.content.ContentValues;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -24,11 +21,21 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.android.inventoryapp.AppDatabase;
+import com.example.android.inventoryapp.AppExecutors;
+import com.example.android.inventoryapp.adapter.InventoryAdapter;
+import com.example.android.inventoryapp.ProductItem;
+import com.example.android.inventoryapp.R;
+import com.example.android.inventoryapp.viewmodel.MainViewModel;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.List;
 
@@ -135,42 +142,54 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
 
            @Override
            public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
+
                 AppExecutors.getInstance().diskIO().execute(new Runnable() {
                     @Override
                     public void run() {
                         int position = viewHolder.getAdapterPosition();
                         List<ProductItem> productsList = adapter.getProducts();
-                        mDb.productItemDao().deleteProduct(productsList.get(position));
+                        final ProductItem item = productsList.get(position);
+                        String urlImageStorageLocation = item.getUrlImageLocation();
+                        if(urlImageStorageLocation != null) {
+                            FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
+                            StorageReference storageRef = firebaseStorage.getReference();
+                            StorageReference deleteFileRef = storageRef.child(urlImageStorageLocation);
+
+                            deleteFileRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    // File deleted successfully
+                                    AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mDb.productItemDao().deleteProduct(item);
+                                        }
+                                    });
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception exception) {
+                                    // Uh-oh, an error occurred!
+                                    Toast.makeText(MainActivity.this, getString(R.string.error_delete_storage_message), Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                        } else{
+                            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mDb.productItemDao().deleteProduct(item);
+                                }
+                            });
+                        }
                     }
                 });
+
+
            }
        }).attachToRecyclerView(recyclerView);
 
-       /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            //We don't use the parameter id, instead we use view.getId() to know if the SALE button was clicked or not
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-
-                long viewId = view.getId();
-                System.out.println("the position is: " + position);
-                System.out.println("the id is: " + id);
-                modifyUri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI,position+1);
-
-                if(viewId == R.id.sale_button){
-                    reduceQuantityItem();
-                }
-                else{
-                    Intent intent = new Intent(MainActivity.this,EditorActivity.class);
-                    Uri wantedUri = ContentUris.withAppendedId(InventoryEntry.CONTENT_URI,id);
-                    intent.setData(wantedUri);
-                    startActivity(intent);
-                }
-            }
-        });*/
-
-        //getSupportLoaderManager().initLoader(1, null, this);
-        retrieveProducts();
+        setupViewModel();
 
     }
 
@@ -181,13 +200,19 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
     }
 
 
-    private void retrieveProducts() {
-        final LiveData<List<ProductItem>> list = mDb.productItemDao().loadAllProducts();
-        list.observe(this, new Observer<List<ProductItem>>() {
+    private void setupViewModel() {
+        MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.getListProductItems().observe(this, new Observer<List<ProductItem>>() {
             @Override
             public void onChanged(@Nullable List<ProductItem> productItems) {
-                Log.d(TAG,"Receiving database update from LiveData");
                 adapter.setProducts(productItems);
+                if(productItems.size() == 0){
+                    emptyView.setVisibility(View.VISIBLE);
+                    recyclerView.setVisibility(View.GONE);
+                } else{
+                    emptyView.setVisibility(View.GONE);
+                    recyclerView.setVisibility(View.VISIBLE);
+                }
             }
         });
     }
@@ -200,30 +225,35 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
         }
     }
 
-    public void reduceQuantityItem() {
+    public void reduceQuantityItem(final int position) {
 
-/*        System.out.println("the sale button was pressed");
-        Cursor cursor = getContentResolver().query(modifyUri,projection,null,null,null);
-        System.out.println("the cursor position is: " + cursor.getPosition());
-        System.out.println("the cursor count is: " + cursor.getCount());
+        final LiveData<List<ProductItem>> listProducts = mDb.productItemDao().loadAllProducts();
+        listProducts.observe(this, new Observer<List<ProductItem>>() {
+            @Override
+            public void onChanged(@Nullable List<ProductItem> productItems) {
+                listProducts.removeObserver(this);
+                final ProductItem saleProduct = productItems.get(position);
+                int quantity = saleProduct.getQuantity();
+                final int productId = saleProduct.getId();
+                if(quantity > 0){
+                    quantity--;
+                    saleProduct.setQuantity(quantity);
+                    AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            saleProduct.setId(productId);
+                            mDb.productItemDao().updateProduct(saleProduct);
+                        }
 
-        int quantity = 0;
-        if(cursor.moveToFirst()) {
-            quantity = cursor.getInt(cursor.getColumnIndexOrThrow(InventoryEntry.COLUMN_PRODUCT_QUANTITY));
-        }
-        cursor.close();
+                    });
+                }
+                else{
+                    Toast.makeText(getBaseContext(), R.string.min_value_message,Toast.LENGTH_SHORT).show();
+                }
 
-        if(quantity > 0){
-            quantity--;
-        }
-        else{
-            Toast.makeText(getBaseContext(),"The min quantity allowed is 0",Toast.LENGTH_SHORT).show();
+            }
+        });
 
-            return;
-        }
-        ContentValues values = new ContentValues();
-        values.put(InventoryEntry.COLUMN_PRODUCT_QUANTITY,quantity);
-        getContentResolver().update(modifyUri,values,null,null);*/
 
     }
 
@@ -243,10 +273,6 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
             case R.id.action_insert_dummy_data:
                 insertDummyProduct();
                 return true;
-            // Respond to a click on the "Delete all entries" menu option
-            case R.id.action_delete_all_entries:
-                deleteEntries();
-                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -254,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
     public void insertDummyProduct(){
 
         final ProductItem productItem = new ProductItem(BRAND,WARRANTY,MANUFACTURE_YEAR,WEIGHT,
-                PRICE,QUANTITY,IN_STOCK,NAME,TYPE_PRODUCT,downloadImageUrl);
+                PRICE,QUANTITY,IN_STOCK,NAME,TYPE_PRODUCT,downloadImageUrl,null);
 
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
@@ -263,33 +289,20 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
             }
         });
 
-        Toast.makeText(this,"Product added successfully",Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.product_added_successfully_message,Toast.LENGTH_SHORT).show();
 
     }
 
     @Override
     public void onItemClickListener(int itemId, int clickedItemIndex, boolean isSaleButton) {
         if(isSaleButton){
-            //reduceQuantityItem();
-            Toast.makeText(this, "The sale button was pressed, " + "itemId: " + itemId + " - " + "position: " + clickedItemIndex,Toast.LENGTH_SHORT).show();
+            reduceQuantityItem(clickedItemIndex);
         }
         else{
             Intent intent = new Intent(MainActivity.this,EditorActivity.class);
             intent.putExtra(EditorActivity.EXTRA_PRODUCT_ID,itemId);
             startActivity(intent);
-            //Toast.makeText(this, "Another view was pressed, " + "itemId: " + itemId + " - " + "position: " + clickedItemIndex,Toast.LENGTH_SHORT).show();
         }
-    }
-
-
-
-    public void deleteEntries(){
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                mDb.productItemDao().deleteAllProducts();
-            }
-        });
     }
 
 }

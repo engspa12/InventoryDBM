@@ -5,11 +5,6 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 
-import com.google.firebase.database.Exclude;
-
-import java.util.HashMap;
-import java.util.Map;
-
 @Entity(tableName = "products")
 public class ProductItem {
 
@@ -28,11 +23,12 @@ public class ProductItem {
     private int type;
     @ColumnInfo(name = "url_image")
     private String urlImage;
+    private String urlImageLocation;
 
 
     @Ignore
     public ProductItem(String brand, int warranty, String manufactureYear, double weight, double price, int quantity, int inStock
-            , String name, int type, String urlImage){
+            , String name, int type, String urlImage, String urlImageLocation){
         this.brand = brand;
         this.warranty = warranty;
         this.manufactureYear = manufactureYear;
@@ -43,10 +39,11 @@ public class ProductItem {
         this.name = name;
         this.type = type;
         this.urlImage = urlImage;
+        this.urlImageLocation = urlImageLocation;
     }
 
     public ProductItem(int id, String brand, int warranty, String manufactureYear, double weight, double price, int quantity, int inStock
-            , String name, int type, String urlImage){
+            , String name, int type, String urlImage, String urlImageLocation){
         this.id = id;
         this.brand = brand;
         this.warranty = warranty;
@@ -58,6 +55,7 @@ public class ProductItem {
         this.name = name;
         this.type = type;
         this.urlImage = urlImage;
+        this.urlImageLocation = urlImageLocation;
     }
 
 
@@ -124,6 +122,10 @@ public class ProductItem {
    }
 
     public void setUrlImage(String urlImage){this.urlImage = urlImage;}
+
+    public String getUrlImageLocation(){return urlImageLocation;}
+
+    public void setUrlImageLocation(String urlImageLocation){this.urlImageLocation = urlImageLocation;}
 
 
 }

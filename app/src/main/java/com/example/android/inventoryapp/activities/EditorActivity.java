@@ -1,25 +1,30 @@
-package com.example.android.inventoryapp;
+package com.example.android.inventoryapp.activities;
 
-import android.arch.lifecycle.LiveData;
+
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProvider;
-import android.content.ContentValues;
+import android.arch.lifecycle.ViewModelProviders;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.media.ExifInterface;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -38,6 +43,12 @@ import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.example.android.inventoryapp.AppDatabase;
+import com.example.android.inventoryapp.AppExecutors;
+import com.example.android.inventoryapp.ProductItem;
+import com.example.android.inventoryapp.R;
+import com.example.android.inventoryapp.viewmodel.AddEditViewModel;
+import com.example.android.inventoryapp.viewmodel.AddEditViewModelFactory;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -45,16 +56,16 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -69,8 +80,6 @@ public class EditorActivity extends AppCompatActivity {
     @BindView(R.id.quantity_minus) Button decreaseQuantityButton;
     @BindView(R.id.quantity_plus) Button increaseQuantityButton;
     @BindView(R.id.order_supplier_button) Button orderFromSupplierButton;
-    @BindView(R.id.increase_quantity_by_button) Button increaseQuantityByButton;
-    @BindView(R.id.decrease_quantity_by_button) Button decreaseQuantityByButton;
 
     @BindView(R.id.product_brand) EditText brandET;
     @BindView(R.id.product_warranty) EditText warrantyET;
@@ -79,10 +88,8 @@ public class EditorActivity extends AppCompatActivity {
     @BindView(R.id.product_price) EditText priceET;
     @BindView(R.id.product_quantity) EditText quantityET;
     @BindView(R.id.product_name) EditText nameET ;
-    @BindView(R.id.modify_quantity_by_et) EditText modifyQuantityET;
 
     @BindView(R.id.increase_decrease_order__buttons_section) LinearLayout containerOne;
-    @BindView(R.id.increase_decrease_section) LinearLayout containerTwo;
 
     @BindView(R.id.progress_bar_save_item) ProgressBar progressBarSaveItem;
 
@@ -116,6 +123,7 @@ public class EditorActivity extends AppCompatActivity {
 
     private Uri selectedImageUri;
     private String downloadImageUrl;
+    private String urlImageStorageLocation;
 
     private static final String TAG = EditorActivity.class.getSimpleName();
 
@@ -136,6 +144,8 @@ public class EditorActivity extends AppCompatActivity {
 
     private AppDatabase mDb;
 
+    private static final String STORAGE_FOLDER = "inventory_photos";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -148,9 +158,11 @@ public class EditorActivity extends AppCompatActivity {
         mDb = AppDatabase.getInstance(getApplicationContext());
 
         if(intent.hasExtra(EXTRA_PRODUCT_ID)) {
+            //An existing product we want to update
             productId = intent.getIntExtra(EXTRA_PRODUCT_ID,DEFAULT_PRODUCT_ID);
 
         } else{
+            //A new product
             productId = DEFAULT_PRODUCT_ID;
         }
 
@@ -171,6 +183,9 @@ public class EditorActivity extends AppCompatActivity {
             }
         };
 
+        firebaseStorage = FirebaseStorage.getInstance();
+        productsStorageReference = firebaseStorage.getReference().child(STORAGE_FOLDER);
+
         if (productId == DEFAULT_PRODUCT_ID) {
             // This is a new product, so change the app bar to say "Add a Product"
             setTitle("Add Product");
@@ -183,11 +198,6 @@ public class EditorActivity extends AppCompatActivity {
             decreaseQuantityButton.setVisibility(View.GONE);
             increaseQuantityButton.setVisibility(View.GONE);
             orderFromSupplierButton.setVisibility(View.GONE);
-            increaseQuantityByButton.setVisibility(View.GONE);
-            decreaseQuantityByButton.setVisibility(View.GONE);
-
-            firebaseStorage = FirebaseStorage.getInstance();
-            productsStorageReference = firebaseStorage.getReference().child("inventory_photos");
 
             multi_button.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -200,25 +210,22 @@ public class EditorActivity extends AppCompatActivity {
                 }
             });
 
-            modifyQuantityET.setVisibility(View.GONE);
 
             containerOne.setVisibility(View.GONE);
-            containerTwo.setVisibility(View.GONE);
-
-
             progressBarSaveItem.setVisibility(View.GONE);
 
 
         } else {
             // Otherwise this is an existing product, so change app bar to say "Edit Product"
             setTitle("Product Details");
-            final LiveData<ProductItem> productItemLiveData = mDb.productItemDao().loadProductById(productId);
-            productItemLiveData.observe(this, new Observer<ProductItem>() {
+
+            AddEditViewModelFactory factory = new AddEditViewModelFactory(mDb, productId);
+            final AddEditViewModel viewModel = ViewModelProviders.of(this,factory).get(AddEditViewModel.class);
+            viewModel.getProductItemLiveData().observe(this, new Observer<ProductItem>() {
                 @Override
                 public void onChanged(@Nullable ProductItem productItem) {
-                    productItemLiveData.removeObserver(this);
+                    viewModel.getProductItemLiveData().removeObserver(this);
                     updateProductItem = productItem;
-                    Log.d(TAG,"Receiving database update from LiveData");
                     populateUI(productItem);
                 }
             });
@@ -244,9 +251,9 @@ public class EditorActivity extends AppCompatActivity {
                     if (quantity > 0) {
                         quantity--;
                         quantityET.setText(String.valueOf(quantity));
-                        Toast.makeText(getBaseContext(), "Quantity value is: " + quantity, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), getString(R.string.quantity_value_message) + quantity, Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getBaseContext(), "The min quantity allowed is 0", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), R.string.min_value_message, Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -256,12 +263,12 @@ public class EditorActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     int quantity = Integer.parseInt(quantityET.getText().toString().trim());
-                    if (quantity < 15) {
+                    if (quantity < 50) {
                         quantity++;
                         quantityET.setText(String.valueOf(quantity));
-                        Toast.makeText(getBaseContext(), "Quantity value is: " + quantity, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), getString(R.string.quantity_value_message) + quantity, Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getBaseContext(), "The max quantity allowed is 15", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), R.string.max_value_message, Toast.LENGTH_SHORT).show();
                     }
                 }
             });
@@ -288,55 +295,6 @@ public class EditorActivity extends AppCompatActivity {
                     }
                 }
             });
-
-
-            increaseQuantityByButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    String amountString = modifyQuantityET.getText().toString().trim();
-                    int amount;
-                    if (amountString.equals("")) {
-                        Toast.makeText(getBaseContext(), "You need to enter a quantity in the input field", Toast.LENGTH_SHORT).show();
-                    } else {
-                        amount = Integer.parseInt(amountString);
-                        int quantity = Integer.parseInt(quantityET.getText().toString().trim());
-                        quantity = quantity + amount;
-                        if (quantity > 15) {
-                            Toast.makeText(getBaseContext(), "The max quantity allowed is 15", Toast.LENGTH_SHORT).show();
-                        } else {
-                            quantityET.setText(String.valueOf(quantity));
-                            Toast.makeText(getBaseContext(), "Quantity value is: " + quantity, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-
-                }
-            });
-
-            decreaseQuantityByButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    String amountString = modifyQuantityET.getText().toString().trim();
-                    int amount;
-                    if (amountString.equals("")) {
-                        Toast.makeText(getBaseContext(), "You need to enter a quantity in the input field", Toast.LENGTH_SHORT).show();
-                    } else {
-                        amount = Integer.parseInt(amountString);
-                        int quantity = Integer.parseInt(quantityET.getText().toString().trim());
-                        quantity = quantity - amount;
-                        if (quantity < 0) {
-                            Toast.makeText(getBaseContext(), "The min quantity allowed is 0", Toast.LENGTH_SHORT).show();
-                        } else {
-                            quantityET.setText(String.valueOf(quantity));
-                            Toast.makeText(getBaseContext(), "Quantity value is: " + quantity, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-
-
-                }
-            });
-
-
         }
 
         invalidateOptionsMenu();
@@ -344,6 +302,8 @@ public class EditorActivity extends AppCompatActivity {
 
 
     }
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -354,87 +314,21 @@ public class EditorActivity extends AppCompatActivity {
             try {
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     Bitmap capturedBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
-                    int origBitmapSize = capturedBitmap.getAllocationByteCount();
                     selectedImageBitmap = Bitmap.createScaledBitmap(capturedBitmap, capturedBitmap.getWidth() / 3, capturedBitmap.getHeight() / 3, true);
-                    int newBitmapSize = selectedImageBitmap.getAllocationByteCount();
-                    Log.v(TAG,"Old value of Bitmap: " + String.valueOf(origBitmapSize));
-                    Log.v(TAG,"New size of Bitmap: " + String.valueOf(newBitmapSize));
                 }
 
             } catch(IOException e){
                 Log.e(TAG,e.getMessage());
             }
-            //Toast.makeText(this,selectedImageUri.toString(),Toast.LENGTH_LONG).show();
-            //productImageView.setImageURI(selectedImageUri);
+
             productImageView.setImageBitmap(selectedImageBitmap);
-            //Picasso.get().load(selectedImageUri).into(productImageView);
-            //checkImageRotation(data);
-            //String path = FileUtility.getRealPathFromURI(this, selectedImageUri);
 
-           /* try {
-                ExifInterface exif = new ExifInterface(path);
-                int rotation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-                Toast.makeText(this,rotation,Toast.LENGTH_LONG).show();
-            } catch(IOException e){
-                Log.e(LOG,e.getMessage());
-            }*/
             image_id_resource = NEW_IMAGE_CODE;
-            //saveInStorage();
+            urlImageStorageLocation = STORAGE_FOLDER + "/" + selectedImageUri.getLastPathSegment();
         }
     }
 
 
-    private void checkImageRotation(Intent data){
-        BitmapFactory.Options options;
-        try {
-            options = new BitmapFactory.Options();
-            options.inSampleSize = 4;
-            Uri selectedImage = data.getData();
-            String[] filePath = {MediaStore.Images.Media.DATA};
-
-            Cursor cursor = getContentResolver().query(selectedImage, filePath, null, null, null);
-            cursor.moveToFirst();
-            String mImagePath = cursor.getString(cursor.getColumnIndex(filePath[0]));
-
-            InputStream stream = getContentResolver().openInputStream(selectedImage);
-            Bitmap yourSelectedImage = BitmapFactory.decodeStream(stream, null, options);
-            stream.close();
-            //orientation
-            try {
-                int rotate = 0;
-                try {
-                    ExifInterface exif = new ExifInterface(
-                            mImagePath);
-                    int orientation = exif.getAttributeInt(
-                            ExifInterface.TAG_ORIENTATION,
-                            ExifInterface.ORIENTATION_NORMAL);
-
-                    switch (orientation) {
-                        case ExifInterface.ORIENTATION_ROTATE_270:
-                            rotate = 270;
-                            break;
-                        case ExifInterface.ORIENTATION_ROTATE_180:
-                            rotate = 180;
-                            break;
-                        case ExifInterface.ORIENTATION_ROTATE_90:
-                            rotate = 90;
-                            break;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                Matrix matrix = new Matrix();
-                matrix.postRotate(rotate);
-                yourSelectedImage = Bitmap.createBitmap(yourSelectedImage , 0, 0, yourSelectedImage.getWidth(), yourSelectedImage.getHeight(), matrix, true);  }
-            catch (Exception e) {}
-            //end of orientation
-
-            productImageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            productImageView.setImageBitmap(yourSelectedImage);
-        } catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "Could not open file.", Toast.LENGTH_LONG).show();
-        }
-    }
 
     private void saveInStorage(){
         final StorageReference photoRef =
@@ -444,12 +338,12 @@ public class EditorActivity extends AppCompatActivity {
         uploadTask.addOnSuccessListener(this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Toast.makeText(EditorActivity.this,"The file was uploaded successfully",Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditorActivity.this, R.string.file_uploaded_successfully_message,Toast.LENGTH_SHORT).show();
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Toast.makeText(EditorActivity.this,"Error - The file could not be uploaded",Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditorActivity.this, R.string.error_uploading_file_message,Toast.LENGTH_SHORT).show();
                 Log.e(TAG,e.getMessage());
             }
         });
@@ -476,7 +370,7 @@ public class EditorActivity extends AppCompatActivity {
                     finish();
                 } else {
                     // Handle failures
-                    Toast.makeText(EditorActivity.this,"The size of the image must be below 3 MB",Toast.LENGTH_LONG).show();
+                    Toast.makeText(EditorActivity.this, R.string.size_image_message,Toast.LENGTH_LONG).show();
                     progressBarSaveItem.setVisibility(View.GONE);
                     scrollView.setVisibility(View.VISIBLE);
                     Log.e(TAG,task.getException().getMessage());
@@ -484,6 +378,7 @@ public class EditorActivity extends AppCompatActivity {
             }
         });
     }
+
 
 
     private void avoidModifications() {
@@ -504,11 +399,15 @@ public class EditorActivity extends AppCompatActivity {
 
     }
 
+
+
     @Override
     protected void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
     }
+
+
 
     @Override
     protected void onStop() {
@@ -517,6 +416,8 @@ public class EditorActivity extends AppCompatActivity {
             mAuth.removeAuthStateListener(mAuthListener);
         }
     }
+
+
 
     private void setupSpinners() {
 
@@ -542,7 +443,7 @@ public class EditorActivity extends AppCompatActivity {
                     } else if (selection.equals(getString(R.string.furniture_type))) {
                         //Furniture Type
                         typeProduct = 2;
-                    } else if (selection.equals(getString(R.string.other_type))) {
+                    } else if (selection.equals(getString(R.string.clothing_type))) {
                         //Clothing Type
                         typeProduct = 3;
                     } else{
@@ -592,11 +493,14 @@ public class EditorActivity extends AppCompatActivity {
     }
 
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.editor_add, menu);
         return true;
     }
+
+
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -605,6 +509,8 @@ public class EditorActivity extends AppCompatActivity {
         menuItem.setVisible(false);
         return true;
     }
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -618,7 +524,7 @@ public class EditorActivity extends AppCompatActivity {
                         scrollView.setVisibility(View.GONE);
                         saveInStorage();
                     } else{
-                        final ProductItem productItem = new ProductItem(brand,warrantyInt,yearManufacture,weightDouble,priceDouble,quantityInt,inStock,name,typeProduct,downloadImageUrl);
+                        final ProductItem productItem = new ProductItem(brand,warrantyInt,yearManufacture,weightDouble,priceDouble,quantityInt,inStock,name,typeProduct,downloadImageUrl,urlImageStorageLocation);
                         AppExecutors.getInstance().diskIO().execute(new Runnable() {
                             @Override
                             public void run() {
@@ -635,6 +541,8 @@ public class EditorActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
 
     }
+
+
 
     private void showDeleteConfirmationDialog() {
         // Create an AlertDialog.Builder and set the message, and click listeners
@@ -662,6 +570,8 @@ public class EditorActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+
+
     public boolean checkInputData(){
 
         brand = brandET.getText().toString().trim();
@@ -674,7 +584,7 @@ public class EditorActivity extends AppCompatActivity {
 
         if (brand.equals("") || warranty.equals("") || yearManufacture.equals("") || weight.equals("") ||
                 price.equals("") || quantity.equals("") || name.equals("")) {
-            Toast.makeText(getBaseContext(), "Null values are not allowed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getBaseContext(), R.string.null_values_not_allowed_message, Toast.LENGTH_SHORT).show();
             return false;
         }
 
@@ -684,14 +594,14 @@ public class EditorActivity extends AppCompatActivity {
         priceDouble = Double.parseDouble(price);
         quantityInt = Integer.parseInt(quantity);
 
-        if (quantityInt > 15 || quantityInt < 0) {
-            Toast.makeText(this, "Quantity must be between 0 and 15", Toast.LENGTH_SHORT).show();
+        if (quantityInt > 50 || quantityInt < 0) {
+            Toast.makeText(this, R.string.quantity_range_message, Toast.LENGTH_SHORT).show();
             return false;
         }
 
 
-        if(image_id_resource == -1 || image_id_resource != NEW_IMAGE_CODE){
-            Toast.makeText(this, "You need to select an image from gallery", Toast.LENGTH_SHORT).show();
+        if(image_id_resource != NEW_IMAGE_CODE){
+            Toast.makeText(this, R.string.select_image_from_gallery_message, Toast.LENGTH_SHORT).show();
             return false;
         }
 
@@ -702,9 +612,11 @@ public class EditorActivity extends AppCompatActivity {
         return true;
     }
 
+
+
    public void saveProductDetails() {
 
-       final ProductItem productItem = new ProductItem(brand,warrantyInt,yearManufacture,weightDouble,priceDouble,quantityInt,inStock,name,typeProduct,downloadImageUrl);
+       final ProductItem productItem = new ProductItem(brand,warrantyInt,yearManufacture,weightDouble,priceDouble,quantityInt,inStock,name,typeProduct,downloadImageUrl,urlImageStorageLocation);
 
        AppExecutors.getInstance().diskIO().execute(new Runnable() {
            @Override
@@ -715,20 +627,45 @@ public class EditorActivity extends AppCompatActivity {
 
     }
 
+
+
     public void deleteProduct() {
 
-        /*if (wantedUri != null) {
-            getContentResolver().delete(wantedUri, null, null);
-        }*/
+        if(urlImageStorageLocation != null) {
+            StorageReference storageRef = firebaseStorage.getReference();
+            StorageReference deleteFileRef = storageRef.child(urlImageStorageLocation);
 
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                mDb.productItemDao().deleteProduct(updateProductItem);
-                finish();
-            }
-        });
+            deleteFileRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    // File deleted successfully
+                    AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            mDb.productItemDao().deleteProduct(updateProductItem);
+                            finish();
+                        }
+                    });
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    // Uh-oh, an error occurred!
+                    Toast.makeText(EditorActivity.this, R.string.error_delete_storage_message,Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        } else{
+            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    mDb.productItemDao().deleteProduct(updateProductItem);
+                    finish();
+                }
+            });
+        }
     }
+
 
 
     public void populateUI(ProductItem item) {
@@ -760,6 +697,8 @@ public class EditorActivity extends AppCompatActivity {
 
         Picasso.get().load(currentImageResource).resize(250,250).into(productImageView);
 
+        urlImageStorageLocation = item.getUrlImageLocation();
+
         if (currentType == SPORTS_TYPE) {
             productTypesSpinner.setSelection(0);
         } else if (currentType == TECHNOLOGY_TYPE) {
@@ -771,7 +710,6 @@ public class EditorActivity extends AppCompatActivity {
         } else if(currentType == OTHER_TYPE){
             productTypesSpinner.setSelection(4);
         }
-
 
         if (currentInStock == NO_STOCK_AVAILABLE) {
             inStockSpinner.setSelection(0);

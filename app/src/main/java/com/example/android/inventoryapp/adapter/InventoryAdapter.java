@@ -1,26 +1,20 @@
-package com.example.android.inventoryapp;
+package com.example.android.inventoryapp.adapter;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CursorAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.example.android.inventoryapp.ProductItem;
+import com.example.android.inventoryapp.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
-
-/**
- * Created by DBM on 6/25/2017.
- */
 
 public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.ProductViewHolder> {
 
@@ -91,7 +85,6 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Prod
                     int elementId = mProductItemList.get(getAdapterPosition()).getId();
                     int clickedPosition = getAdapterPosition();
                     mItemClickListener.onItemClickListener(elementId,clickedPosition, true);
-                    //Toast.makeText(mContext, "The sale button was pressed, " + "itemId: " + mProductItemList.get(getAdapterPosition()).getId() + " - " + "position: " + getAdapterPosition(),Toast.LENGTH_SHORT).show();
                 }
             });
 

@@ -34,8 +34,8 @@
     <string name="product_quantity_hint">Quantity</string>
     <string name="product_name">Product Name :</string>
     <string name="product_name_hint">Product Name</string>
-    <string name="product_type">Product Type</string>
-    <string name="product_stock_status">Stock Status</string>
+    <string name="product_type">Product Type :</string>
+    <string name="product_stock_status">Stock Status :</string>
 
     <string name="select_image_button">Select Image</string>
     <string name="delete_product_button">Delete Product</string>
@@ -61,4 +61,15 @@
     <string name="product_photo_content_description">Product Photo</string>
     <string name="kilogram_text">kg</string>
     <string name="dollar_sign_text">$</string>
+    <string name="error_delete_storage_message">There was an error deleting the file in Storage</string>
+    <string name="select_image_from_gallery_message">You need to select an image from gallery</string>
+    <string name="quantity_range_message">Quantity must be between 0 and 50</string>
+    <string name="null_values_not_allowed_message">Null values are not allowed</string>
+    <string name="size_image_message">The size of the image must be below 3 MB</string>
+    <string name="error_uploading_file_message">Error - The file could not be uploaded</string>
+    <string name="file_uploaded_successfully_message">The file was uploaded successfully</string>
+    <string name="quantity_value_message">Quantity value is:</string>
+    <string name="max_value_message">The max quantity allowed is 50</string>
+    <string name="min_value_message">The min quantity allowed is 0</string>
+    <string name="product_added_successfully_message">Product added successfully</string>
 </resources>
