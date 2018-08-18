@@ -20,8 +20,6 @@ public abstract class AppDatabase extends RoomDatabase {
                 Log.d(LOG, "Creating new database instance");
                 sInstance = Room.databaseBuilder(context.getApplicationContext(),
                         AppDatabase.class, AppDatabase.DATABASE_NAME)
-                        //THIS IS TEMPORARY since we want to avoid locking the UI
-                        .allowMainThreadQueries()
                         .build();
             }
         }
