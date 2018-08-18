@@ -251,7 +251,7 @@ public class EditorActivity extends AppCompatActivity {
                     if (quantity > 0) {
                         quantity--;
                         quantityET.setText(String.valueOf(quantity));
-                        Toast.makeText(getBaseContext(), getString(R.string.quantity_value_message) + quantity, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), getString(R.string.quantity_value_message) + " " + quantity, Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getBaseContext(), R.string.min_value_message, Toast.LENGTH_SHORT).show();
                     }
@@ -266,7 +266,7 @@ public class EditorActivity extends AppCompatActivity {
                     if (quantity < 50) {
                         quantity++;
                         quantityET.setText(String.valueOf(quantity));
-                        Toast.makeText(getBaseContext(), getString(R.string.quantity_value_message) + quantity, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getBaseContext(), getString(R.string.quantity_value_message) + " " + quantity, Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getBaseContext(), R.string.max_value_message, Toast.LENGTH_SHORT).show();
                     }

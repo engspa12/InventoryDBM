@@ -1,0 +1,55 @@
+# InventoryApp
+
+#### InventoryApp is an Android application which allows users to have their own inventory of products for sale. Users can upload a thumbnail of the image along with details of the product such as name, brand, price, quantity, year of manufacture, and so on. Users can delete a product at any time by just swiping the product on the main screen or clicking on a button on the detail screen. Additional information is delivered to the user when the inventory is empty.
+
+#### The database of InventoryApp was developed using Android Architecture Components such as the Room library, LiveData, and ViewModel.
+
+</br>
+
+<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F1.png?alt=media&token=787e0f12-8649-4d78-9c5e-4776021339fa" width="420" height="692" style="margin:4px"> <img/><img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F2.png?alt=media&token=683f583f-4a4e-45dd-a46b-ab957fdfdaa3" width="420" height="692" style="margin:4px">
+<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F3.png?alt=media&token=2bab629b-399c-43dc-bdaa-4377d031f552" width="420" height="692" style="margin:4px"> <img/><img
+src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F4.png?alt=media&token=994029cb-d8eb-4622-8d70-f3c6961a2755" width="420" height="692" style="margin:4px">
+<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F5.png?alt=media&token=6cdf6fc1-5f9d-4c01-a75e-ff96092c93bd" width="420" height="692" style="margin:4px"> 
+
+## Getting Started
+
+#### These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+
+## Prerequisites
+
+#### InventoryApp was developed using Android Studio IDE so you must install it in your computer before proceeding:
+
+###### https://developer.android.com/studio/
+
+## Next Steps
+
+#### You can proceed to clone the project to your local machine, but DO NOT enter Android Studio yet. First, you need to set up your Firebase project as indicated in the next paragraph.
+
+#### InventoryApp requires Firebase Storage for uploading the images and Firebase Authentication for security reasons (although the app uses an anonymous sign-in method). Therefore, in order to use InventoryApp, you need to set up a project in the Firebase console and then add Firebase to your Android app by clicking on the corresponding button in the Project Overview section. This last part involves that you include the required data of your local machine such as the project package name and the SHA-1 fingerprint certificate. For further information, check this link:
+
+###### https://firebase.google.com/docs/android/setup
+
+#### Once you have your project ready, you must Add Firebase to your Android app. remember to download the **_google-services.json_** file and move it to the app directory (into the app module).
+
+#### The next step is going to the Authentication section in the Firebase console and enable anonymous sign-in method.
+
+#### Lastly, go to the Storage section in the Firebase console and create a folder named: **inventory_photos**.
+
+#### After this is done, you can enter Android Studio, import and build the project and start using InventoryApp on your Android device.
+
+## Compatibility
+
+#### Minimum Android SDK: InventoryApp requires a minimum API level of 15.
+#### Compile Android SDK: InventoryApp requires you to compile against API 27 or later.
+
+## Getting Help
+
+#### To report a specific problem or feature request, open a new issue on Github. For questions, suggestions, or anything else, email to: arturo_lpc@hotmail.com.
+
+## Author
+
+#### Daniel Bedoya - @engspa12 on GitHub
+
+## License
+
+#### See the LICENSE file for details.
