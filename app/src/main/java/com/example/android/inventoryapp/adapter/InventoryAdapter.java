@@ -10,9 +10,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.android.inventoryapp.ProductItem;
 import com.example.android.inventoryapp.R;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -111,7 +112,10 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Prod
             productQuantity.setText(mContext.getString(R.string.product_quantity_detail,quantity));
             productPrice.setText(mContext.getString(R.string.product_price_detail,price));
 
-            Picasso.get().load(image_resource).resize(250,250).into(productImageView);
+            Glide.with(productImageView.getContext())
+                    .load(image_resource)
+                    .apply(new RequestOptions().centerCrop())
+                    .into(productImageView);
         }
 
     }

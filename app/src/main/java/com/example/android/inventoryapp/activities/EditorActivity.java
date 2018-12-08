@@ -3,28 +3,19 @@ package com.example.android.inventoryapp.activities;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.Context;
+
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
+
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
+
 import android.net.Uri;
-import android.os.Build;
+
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.media.ExifInterface;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -43,6 +34,8 @@ import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.android.inventoryapp.AppDatabase;
 import com.example.android.inventoryapp.AppExecutors;
 import com.example.android.inventoryapp.ProductItem;
@@ -60,11 +53,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 
 import butterknife.BindView;
@@ -310,18 +298,11 @@ public class EditorActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == RC_PHOTO_PICKER && resultCode == RESULT_OK) {
             selectedImageUri = data.getData();
-            selectedImageBitmap = null;
-            try {
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    Bitmap capturedBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImageUri);
-                    selectedImageBitmap = Bitmap.createScaledBitmap(capturedBitmap, capturedBitmap.getWidth() / 3, capturedBitmap.getHeight() / 3, true);
-                }
 
-            } catch(IOException e){
-                Log.e(TAG,e.getMessage());
-            }
-
-            productImageView.setImageBitmap(selectedImageBitmap);
+            Glide.with(productImageView.getContext())
+                    .load(selectedImageUri)
+                    .apply(new RequestOptions().centerCrop())
+                    .into(productImageView);
 
             image_id_resource = NEW_IMAGE_CODE;
             urlImageStorageLocation = STORAGE_FOLDER + "/" + selectedImageUri.getLastPathSegment();
@@ -695,7 +676,11 @@ public class EditorActivity extends AppCompatActivity {
         quantityET.setText(String.valueOf(currentQuantity));
         nameET.setText(currentName);
 
-        Picasso.get().load(currentImageResource).resize(250,250).into(productImageView);
+        Glide.with(productImageView.getContext())
+                .load(currentImageResource)
+                .apply(new RequestOptions().centerCrop())
+                .into(productImageView);
+
 
         urlImageStorageLocation = item.getUrlImageLocation();
 
