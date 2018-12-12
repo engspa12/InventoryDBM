@@ -33,13 +33,13 @@ src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/
 
 ###### https://firebase.google.com/docs/android/setup
 
-#### Once you have your project ready, you must add Firebase to your Android app. Remember to download the **_google-services.json_** file and move it to the app directory (into the app module). The Firebase platform will ask you to run the app so it can confirm a successful communication. Therefore, open Android Studio, build the project and run it. DO NOT try to sign up in the app yet.
+#### Once you have your project ready, you must add Firebase to your Android app. Remember to download the **_google-services.json_** file and move it to the app directory (into the app module). The Firebase platform will ask you to run the app so it can confirm a successful communication. Therefore, open Android Studio, build the project and run it. DO NOT try to insert items yet. Ignore the Authentication Failed toast message displayed and proceed to the next step.
 
 #### If the communication is successful, uninstall the app and go to the Authentication section in the Firebase console to enable anonymous sign-in method.
 
 #### Lastly, go to the Storage section in the Firebase console and create a folder named: **inventory_photos**.
 
-#### Proceed to reinstall the app and start using it on your Android device.
+#### Reinstall the app and start using it on your Android device.
 
 ## Compatibility
 
