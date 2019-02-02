@@ -44,10 +44,14 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements InventoryAdapter.ItemClickListener {
 
+    @BindView(R.id.fab_product)
+    FloatingActionButton fab;
 
-    @BindView(R.id.fab_product) FloatingActionButton fab;
-    @BindView(R.id.recycler_view) RecyclerView recyclerView;
-    @BindView(R.id.empty_view) TextView emptyView;
+    @BindView(R.id.recycler_view)
+    RecyclerView recyclerView;
+
+    @BindView(R.id.empty_view)
+    TextView emptyView;
 
     private AppDatabase mDb;
 
@@ -63,8 +67,7 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
     private static final String NAME = "Product Name";
     private static final int TYPE_PRODUCT = 3;
 
-
-    private static final String downloadImageUrl = "http://www.bsmc.net.au/wp-content/uploads/No-image-available.jpg";
+    private static final String noImageAvailableUrl = "http://www.bsmc.net.au/wp-content/uploads/No-image-available.jpg";
 
     private InventoryAdapter adapter;
 
@@ -75,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.overall_layout);
+
         ButterKnife.bind(this);
 
         mDb = AppDatabase.getInstance(getApplicationContext());
@@ -96,8 +100,8 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
             }
         };
 
-
-       mAuth.signInAnonymously()
+        //Anonymous Sign in
+        mAuth.signInAnonymously()
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -129,8 +133,8 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
 
        recyclerView.setAdapter(adapter);
 
-        DividerItemDecoration itemDecorator = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
-        itemDecorator.setDrawable(ContextCompat.getDrawable(this, R.drawable.divider));
+       DividerItemDecoration itemDecorator = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
+       itemDecorator.setDrawable(ContextCompat.getDrawable(this, R.drawable.divider));
 
        recyclerView.addItemDecoration(itemDecorator);
 
@@ -151,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
                         final ProductItem item = productsList.get(position);
                         String urlImageStorageLocation = item.getUrlImageLocation();
                         if(urlImageStorageLocation != null) {
+                            //Delete image in FirebaseStorage
                             FirebaseStorage firebaseStorage = FirebaseStorage.getInstance();
                             StorageReference storageRef = firebaseStorage.getReference();
                             StorageReference deleteFileRef = storageRef.child(urlImageStorageLocation);
@@ -199,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
        mAuth.addAuthStateListener(mAuthListener);
     }
 
-
+    //Setup ViewModel using MainViewModel class
     private void setupViewModel() {
         MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
         viewModel.getListProductItems().observe(this, new Observer<List<ProductItem>>() {
@@ -225,6 +230,8 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
         }
     }
 
+
+    //Reduce quantity by 1
     public void reduceQuantityItem(final int position) {
 
         final LiveData<List<ProductItem>> listProducts = mDb.productItemDao().loadAllProducts();
@@ -277,10 +284,11 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
         return super.onOptionsItemSelected(item);
     }
 
+    //Insert a product to test the database
     public void insertDummyProduct(){
 
         final ProductItem productItem = new ProductItem(BRAND,WARRANTY,MANUFACTURE_YEAR,WEIGHT,
-                PRICE,QUANTITY,IN_STOCK,NAME,TYPE_PRODUCT,downloadImageUrl,null);
+                PRICE,QUANTITY,IN_STOCK,NAME,TYPE_PRODUCT, noImageAvailableUrl,null);
 
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override
