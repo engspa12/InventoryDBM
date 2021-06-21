@@ -7,7 +7,7 @@
     android:layout_height="match_parent">
 
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:clipToPadding="false"
         android:layout_margin="8dp"
         tools:listitem="@layout/list_item"
@@ -29,7 +29,7 @@
         android:gravity="center"
         android:text="@string/empty_view_text"/>
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         app:backgroundTint="@color/colorAccent"
         android:id="@+id/fab_product"
         android:layout_width="56dp"

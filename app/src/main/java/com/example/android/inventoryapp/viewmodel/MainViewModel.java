@@ -1,9 +1,9 @@
 package com.example.android.inventoryapp.viewmodel;
 
 import android.app.Application;
-import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.LiveData;
-import android.support.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.annotation.NonNull;
 
 import com.example.android.inventoryapp.AppDatabase;
 import com.example.android.inventoryapp.ProductItem;
