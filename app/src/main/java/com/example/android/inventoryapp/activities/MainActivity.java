@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements InventoryAdapter.
     public void insertDummyProduct(){
 
         final ProductItem productItem = new ProductItem(BRAND,WARRANTY,MANUFACTURE_YEAR,WEIGHT,
-                PRICE,QUANTITY,IN_STOCK,NAME,TYPE_PRODUCT, noImageAvailableUrl,null);
+                PRICE,QUANTITY,IN_STOCK,NAME,TYPE_PRODUCT, null,null);
 
         AppExecutors.getInstance().diskIO().execute(new Runnable() {
             @Override

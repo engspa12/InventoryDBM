@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import com.example.android.inventoryapp.AppDatabase;
 
+@SuppressWarnings("unchecked")
 public class AddEditViewModelFactory extends ViewModelProvider.NewInstanceFactory {
 
     private final AppDatabase mDb;

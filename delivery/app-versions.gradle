@@ -1,0 +1,39 @@
+import java.text.SimpleDateFormat
+
+apply from: rootProject.file("delivery/files.gradle")
+
+ext {
+    def properties = getVersionProperties()
+
+    versionMajor = getVersionMajor(properties)
+    versionMinor = getVersionMinor(properties)
+    versionPatch = getVersionPatch(properties)
+    version_name = "${versionMajor}.${versionMinor}.${versionPatch}" //For example -> 1.0.0
+    version_code = getVersionCode(properties)
+    version_date = generateBuildTime()
+}
+
+private static def getVersionMajor(def properties) {
+    return properties['MAJOR'].toInteger()
+}
+
+private static def getVersionMinor(def properties) {
+    return properties['MINOR'].toInteger()
+}
+
+private static def getVersionPatch(def properties) {
+    return properties['PATCH'].toInteger()
+}
+
+private static def getVersionCode(def properties) {
+    return properties['CODE'].toInteger()
+}
+
+private def getVersionProperties() {
+    def versionFile = getVersionPropertiesFile()
+    return loadProperties(versionFile)
+}
+
+private static def generateBuildTime() {
+    return new SimpleDateFormat("dd/MM/yyyy - hh:mm aa").format(new Date())
+}

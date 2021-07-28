@@ -2,6 +2,7 @@ package com.example.android.inventoryapp.adapter;
 
 import android.content.Context;
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -112,10 +113,17 @@ public class InventoryAdapter extends RecyclerView.Adapter<InventoryAdapter.Prod
             productQuantity.setText(mContext.getString(R.string.product_quantity_detail,quantity));
             productPrice.setText(mContext.getString(R.string.product_price_detail,price));
 
-            Glide.with(productImageView.getContext())
-                    .load(image_resource)
-                    .apply(new RequestOptions().centerCrop())
-                    .into(productImageView);
+            if(image_resource != null) {
+                Glide.with(productImageView.getContext())
+                        .load(image_resource)
+                        .apply(new RequestOptions().centerCrop())
+                        .into(productImageView);
+            } else {
+                Glide.with(productImageView.getContext())
+                        .load(ResourcesCompat.getDrawable(itemView.getResources(), R.drawable.clothing,null))
+                        .apply(new RequestOptions().centerCrop())
+                        .into(productImageView);
+            }
         }
 
     }

@@ -1,5 +1,5 @@
 <resources xmlns:xliff = "http://schemas.android.com/tools" >
-    <string name="app_name">InventoryApp</string>
+    <string name="app_name">InventoryDBM</string>
 
     <string name="sports_type">Sports</string>
     <string name="technology_type">Technology</string>

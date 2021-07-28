@@ -1,0 +1,55 @@
+apply from: rootProject.file("delivery/files.gradle")
+
+ext {
+    signingDebug = {
+        def propertiesFile = getCredentialsFile("dev")
+
+        android.signingConfigs.debug {
+            storeFile getKeyFile("debug")
+
+            def properties = loadProperties(propertiesFile)
+            storePassword properties.KEY_PASS
+            keyAlias properties.ALIAS
+            keyPassword properties.KEY_PASS
+        }
+    }
+
+    signingRelease = {
+        def propertiesFile = getCredentialsFile("prod")
+
+        android.signingConfigs.release {
+            storeFile getKeyFile("release")
+
+            def properties = loadProperties(propertiesFile)
+            storePassword properties.KEY_PASS
+            keyAlias properties.ALIAS
+            keyPassword properties.KEY_PASS
+        }
+    }
+
+    flavorDev = {
+        def propertiesFile = getCredentialsFile("dev")
+
+        android.productFlavors.dev {
+            resValue "string", "app_name", "dev-inventory"
+            buildConfigField "String", "API_KEY", "\"${getValueFromProps(propertiesFile, "API_KEY")}\""
+        }
+    }
+
+    flavorStage = {
+        def propertiesFile = getCredentialsFile("stage")
+
+        android.productFlavors.stage {
+            resValue "string", "app_name", "stage-inventory"
+            buildConfigField "String", "API_KEY", "\"${getValueFromProps(propertiesFile, "API_KEY")}\""
+        }
+    }
+
+    flavorProd = {
+        def propertiesFile = getCredentialsFile("prod")
+
+        android.productFlavors.prod {
+            buildConfigField "String", "API_KEY", "\"${getValueFromProps(propertiesFile, "API_KEY")}\""
+        }
+    }
+}

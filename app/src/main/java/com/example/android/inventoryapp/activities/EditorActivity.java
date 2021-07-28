@@ -1,6 +1,7 @@
 package com.example.android.inventoryapp.activities;
 
 
+import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -676,11 +677,17 @@ public class EditorActivity extends AppCompatActivity {
         quantityET.setText(String.valueOf(currentQuantity));
         nameET.setText(currentName);
 
-        Glide.with(productImageView.getContext())
-                .load(currentImageResource)
-                .apply(new RequestOptions().centerCrop())
-                .into(productImageView);
-
+        if(currentImageResource != null){
+            Glide.with(productImageView.getContext())
+                    .load(currentImageResource)
+                    .apply(new RequestOptions().centerCrop())
+                    .into(productImageView);
+        } else {
+            Glide.with(productImageView.getContext())
+                    .load(ResourcesCompat.getDrawable(getResources(), R.drawable.clothing,null))
+                    .apply(new RequestOptions().centerCrop())
+                    .into(productImageView);
+        }
 
         urlImageStorageLocation = item.getUrlImageLocation();
 

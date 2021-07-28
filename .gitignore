@@ -9,4 +9,8 @@
 .DS_Store
 /build
 /captures
+/delivery/credentials/*
+/delivery/keys/*
+/app/release/*
 .externalNativeBuild
+/app/release
