@@ -59,7 +59,7 @@ android {
         }
     }
 
-    flavorDimensions "version"
+    /*flavorDimensions "version"
 
     productFlavors {
         defaultConfig {
@@ -74,7 +74,7 @@ android {
         prod {
             flavorProd()
         }
-    }
+    }*/
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

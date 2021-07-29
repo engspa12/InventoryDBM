@@ -1,8 +1,8 @@
-# InventoryApp
+# InventoryDBM
 
-#### InventoryApp is an Android application which allows users to have their own inventory of products for sale. Users can upload a thumbnail of the image along with details of the product such as name, brand, price, quantity, year of manufacture, and so on. Users can delete a product at any time by just swiping the product on the main screen or clicking on a button on the detail screen. Additional information is delivered to the user when the inventory is empty.
+#### InventoryDBM is an Android application which allows users to have their own inventory of products for sale. Users can upload a thumbnail of the image along with details of the product such as name, brand, price, quantity, year of manufacture, and so on. Users can delete a product at any time by just swiping the product on the main screen or clicking on a button on the detail screen. Additional information is delivered to the user when the inventory is empty.
 
-#### The database of InventoryApp was developed using Android Architecture Components such as the Room library, LiveData, and ViewModel.
+#### The database of InventoryDBM was developed using Android Architecture Components such as the Room library, LiveData, and ViewModel.
 
 </br>
 
@@ -21,7 +21,7 @@ src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/
 
 ## Prerequisites
 
-#### InventoryApp was developed using Android Studio IDE so you must install it on your computer before proceeding:
+#### InventoryDBM was developed using Android Studio IDE so you must install it on your computer before proceeding:
 
 ###### https://developer.android.com/studio/
 
@@ -29,7 +29,7 @@ src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/
 
 #### You can proceed to clone the project to your local machine, but DO NOT enter Android Studio yet. First, you need to set up your Firebase project as indicated in the next paragraph.
 
-#### InventoryApp requires Firebase Storage for uploading images and Firebase Authentication for security reasons (although the app uses an anonymous sign-in method). Therefore, in order to use InventoryApp, you need to set up a project in the Firebase console and then add Firebase to your Android app by clicking on the corresponding button in the Project Overview section. This last part involves that you include the required data of your local machine such as the project package name and the SHA-1 fingerprint certificate. For further information, check this link:
+#### InventoryDBM requires Firebase Storage for uploading images and Firebase Authentication for security reasons (although the app uses an anonymous sign-in method). Therefore, in order to use InventoryDBM, you need to set up a project in the Firebase console and then add Firebase to your Android app by clicking on the corresponding button in the Project Overview section. This last part involves that you include the required data of your local machine such as the project package name and the SHA-1 fingerprint certificate. For further information, check this link:
 
 ###### https://firebase.google.com/docs/android/setup
 
@@ -43,8 +43,8 @@ src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/
 
 ## Compatibility
 
-#### Minimum Android SDK: InventoryApp requires a minimum API level of 15.
-#### Compile Android SDK: InventoryApp requires you to compile against API 27 or later.
+#### Minimum Android SDK: InventoryDBM requires a minimum API level of 15.
+#### Compile Android SDK: InventoryDBM requires you to compile against API 27 or later.
 
 ## Getting Help
 
