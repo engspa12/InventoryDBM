@@ -37,9 +37,9 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.example.android.inventoryapp.AppDatabase;
-import com.example.android.inventoryapp.AppExecutors;
-import com.example.android.inventoryapp.ProductItem;
+import com.example.android.inventoryapp.data.AppDatabase;
+import com.example.android.inventoryapp.data.AppExecutors;
+import com.example.android.inventoryapp.data.ProductItem;
 import com.example.android.inventoryapp.R;
 import com.example.android.inventoryapp.viewmodel.AddEditViewModel;
 import com.example.android.inventoryapp.viewmodel.AddEditViewModelFactory;

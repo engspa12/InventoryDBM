@@ -3,8 +3,8 @@ package com.example.android.inventoryapp.viewmodel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.android.inventoryapp.AppDatabase;
-import com.example.android.inventoryapp.ProductItem;
+import com.example.android.inventoryapp.data.AppDatabase;
+import com.example.android.inventoryapp.data.ProductItem;
 
 public class AddEditViewModel extends ViewModel {
 

@@ -21,10 +21,10 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.inventoryapp.AppDatabase;
-import com.example.android.inventoryapp.AppExecutors;
+import com.example.android.inventoryapp.data.AppDatabase;
+import com.example.android.inventoryapp.data.AppExecutors;
 import com.example.android.inventoryapp.adapter.InventoryAdapter;
-import com.example.android.inventoryapp.ProductItem;
+import com.example.android.inventoryapp.data.ProductItem;
 import com.example.android.inventoryapp.R;
 import com.example.android.inventoryapp.viewmodel.MainViewModel;
 import com.google.android.gms.tasks.OnCompleteListener;

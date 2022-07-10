@@ -1,4 +1,4 @@
-package com.example.android.inventoryapp;
+package com.example.android.inventoryapp.data;
 
 import androidx.room.Database;
 import androidx.room.Room;

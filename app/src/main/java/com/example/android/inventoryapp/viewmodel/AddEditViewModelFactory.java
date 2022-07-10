@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.annotation.NonNull;
 
-import com.example.android.inventoryapp.AppDatabase;
+import com.example.android.inventoryapp.data.AppDatabase;
 
 @SuppressWarnings("unchecked")
 public class AddEditViewModelFactory extends ViewModelProvider.NewInstanceFactory {

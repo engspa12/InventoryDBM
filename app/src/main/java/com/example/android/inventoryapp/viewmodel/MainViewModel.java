@@ -5,8 +5,8 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.annotation.NonNull;
 
-import com.example.android.inventoryapp.AppDatabase;
-import com.example.android.inventoryapp.ProductItem;
+import com.example.android.inventoryapp.data.AppDatabase;
+import com.example.android.inventoryapp.data.ProductItem;
 
 import java.util.List;
 

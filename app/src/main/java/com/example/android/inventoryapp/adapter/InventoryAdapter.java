@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.example.android.inventoryapp.ProductItem;
+import com.example.android.inventoryapp.data.ProductItem;
 import com.example.android.inventoryapp.R;
 
 import java.util.List;
