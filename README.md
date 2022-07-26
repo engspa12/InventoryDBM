@@ -1,21 +1,21 @@
 # InventoryDBM
 
-#### InventoryDBM is an Android application which allows users to have their own inventory of products for sale. Users can upload a thumbnail of the image along with details of the product such as name, brand, price, quantity, year of manufacture, and so on. Users can delete a product at any time by just swiping the product on the main screen or clicking on a button on the detail screen. Additional information is delivered to the user when the inventory is empty.
+#### InventoryDBM is an Android application which allows users to have their own inventory of products for sale. Users can upload a thumbnail of the image along with details of the product such as name, brand, price, quantity, year of manufacture, and so on. Addionally, they can delete a product at any time by just swiping the product on the main screen or clicking on a button on the detail screen. An explanation message is displayed to the user when the inventory is empty.
 
 #### The database of InventoryDBM was developed using Android Architecture Components such as the Room library, LiveData, and ViewModel.
 
 </br>
 
-<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F1.png?alt=media&token=787e0f12-8649-4d78-9c5e-4776021339fa" width="420" height="692" style="margin:4px"> <img/><img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F2.png?alt=media&token=683f583f-4a4e-45dd-a46b-ab957fdfdaa3" width="420" height="692" style="margin:4px">
-<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F3.png?alt=media&token=2bab629b-399c-43dc-bdaa-4377d031f552" width="420" height="692" style="margin:4px"> <img/><img
-src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F4.png?alt=media&token=994029cb-d8eb-4622-8d70-f3c6961a2755" width="420" height="692" style="margin:4px">
-<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F6.png?alt=media&token=b6b968b9-468d-4b8b-b1a7-c11a1f49a1a7" width="420" height="692" style="margin:4px"> <img/><img
-src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F5.png?alt=media&token=6cdf6fc1-5f9d-4c01-a75e-ff96092c93bd" width="420" height="692" style="margin:4px">
-<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F7.png?alt=media&token=f8bd920c-6897-4070-b056-78749d070711" width="420" height="692" style="margin:4px"> <img/><img
-src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F8.png?alt=media&token=95d3f105-dbf5-4064-9415-cbe39368e1d1" width="420" height="692" style="margin:4px">
+<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F1.png?alt=media&token=787e0f12-8649-4d78-9c5e-4776021339fa" width="375" height="725"><img height="725" hspace="20"/><img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F2.png?alt=media&token=683f583f-4a4e-45dd-a46b-ab957fdfdaa3" width="375" height="725">
+<img width="770" vspace="20"/>
+<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F3.png?alt=media&token=2bab629b-399c-43dc-bdaa-4377d031f552" width="375" height="725"><img height="725" hspace="20"/><img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F4.png?alt=media&token=994029cb-d8eb-4622-8d70-f3c6961a2755" width="375" height="726">
+<img width="770" vspace="20"/>
+<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F6.png?alt=media&token=b6b968b9-468d-4b8b-b1a7-c11a1f49a1a7" width="375" height="725"><img height="725" hspace="20"/><img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F5.png?alt=media&token=6cdf6fc1-5f9d-4c01-a75e-ff96092c93bd" width="375" height="726">
+<img width="770" vspace="20"/>
+<img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F7.png?alt=media&token=f8bd920c-6897-4070-b056-78749d070711" width="375" height="725"><img height="725" hspace="20"/><img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/o/InventoryApp%2F8.png?alt=media&token=95d3f105-dbf5-4064-9415-cbe39368e1d1" width="375" height="726">
+<img width="770" vspace="20"/>
 
 ## Getting Started
-
 
 #### These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
@@ -43,14 +43,14 @@ src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-c8633.appspot.com/
 
 ## Compatibility
 
-#### Minimum Android SDK: InventoryDBM requires a minimum API level of 15.
-#### Compile Android SDK: InventoryDBM requires you to compile against API 27 or later.
+#### Minimum Android SDK: InventoryDBM requires a minimum API level of 21.
+#### Compile Android SDK: InventoryDBM requires you to compile against API 32 or later.
 
 ## Getting Help
 
 #### To report a specific problem or feature request, open a new issue on Github. For questions, suggestions, or anything else, email to:
 
-###### arturo_lpc@hotmail.com
+###### arturo.lpc12@gmail.com
 
 ## Author
 
