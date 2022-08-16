@@ -357,17 +357,17 @@
                 android:padding="10dp">
 
                 <Button
-                    android:id="@+id/quantity_plus"
+                    android:id="@+id/quantity_minus"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/border_button"
-                    android:text="@string/q_plus"
+                    android:text="@string/q_minus"
                     android:textAllCaps="false"
                     android:textColor="@color/text_color" />
 
                 <Button
-                    android:id="@+id/quantity_minus"
+                    android:id="@+id/quantity_plus"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
@@ -376,7 +376,7 @@
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:background="@drawable/border_button"
-                    android:text="@string/q_minus"
+                    android:text="@string/q_plus"
                     android:textAllCaps="false"
                     android:textColor="@color/text_color" />
 

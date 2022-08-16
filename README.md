@@ -1,6 +1,6 @@
 # InventoryDBM
 
-#### InventoryDBM is an Android application which allows users to have their own inventory of products for sale. Users can upload a thumbnail of the image along with details of the product such as name, brand, price, quantity, year of manufacture, and so on. Addionally, they can delete a product at any time by just swiping the product on the main screen or clicking on a button on the detail screen. An explanation message is displayed to the user when the inventory is empty.
+#### InventoryDBM is an Android application which allows users to have their own inventory of products for sale. Users can upload a thumbnail of the image along with details of the product such as name, brand, price, quantity, year of manufacture, and so on. Additionally, they can delete a product at any time by just swiping the product on the main screen or clicking on a button on the detail screen. An explanation message is displayed to the user when the inventory is empty.
 
 #### The database of InventoryDBM was developed using Android Architecture Components such as the Room library, LiveData, and ViewModel.
 
